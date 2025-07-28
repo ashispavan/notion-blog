@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useBlogPost } from '@/hooks/use-blog';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { format } from 'date-fns';
@@ -79,11 +80,14 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
       <article className="max-w-4xl mx-auto px-4 py-8">
         <header className="mb-8">
           {post.coverImage && (
-            <div className="aspect-video w-full overflow-hidden rounded-lg mb-6">
-              <img
+            <div className="aspect-video w-full overflow-hidden rounded-lg mb-6 relative">
+              <Image
                 src={post.coverImage}
                 alt={post.title}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                priority
               />
             </div>
           )}

@@ -1,6 +1,6 @@
 import { Client } from '@notionhq/client';
 import { NotionToMarkdown } from 'notion-to-md';
-import { BlogPost, NotionPage, BlogListResponse } from '@/types/blog';
+import { BlogPost, NotionPage, NotionPageProperty, BlogListResponse } from '@/types/blog';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -11,14 +11,14 @@ const n2m = new NotionToMarkdown({ notionClient: notion });
 const DATABASE_ID = process.env.NOTION_DATABASE_ID!;
 
 // Helper function to extract plain text from Notion rich text
-function getPlainText(richText: any[]): string {
+function getPlainText(richText: Array<{ plain_text: string }>): string {
   if (!richText || !Array.isArray(richText)) return '';
   return richText.map((text) => text.plain_text).join('');
 }
 
 // Helper function to extract text from title property
-function getTitleText(titleProperty: any): string {
-  if (!titleProperty || titleProperty.type !== 'title') return '';
+function getTitleText(titleProperty: NotionPageProperty): string {
+  if (!titleProperty || titleProperty.type !== 'title' || !titleProperty.title) return '';
   return getPlainText(titleProperty.title);
 }
 
@@ -31,19 +31,19 @@ function createSlug(title: string): string {
 }
 
 // Helper function to extract tags
-function getTags(multiSelectProperty: any): string[] {
-  if (!multiSelectProperty || multiSelectProperty.type !== 'multi_select') return [];
-  return multiSelectProperty.multi_select.map((tag: any) => tag.name);
+function getTags(multiSelectProperty: NotionPageProperty): string[] {
+  if (!multiSelectProperty || multiSelectProperty.type !== 'multi_select' || !multiSelectProperty.multi_select) return [];
+  return multiSelectProperty.multi_select.map((tag) => tag.name);
 }
 
 // Helper function to get checkbox value
-function getCheckboxValue(checkboxProperty: any): boolean {
-  if (!checkboxProperty || checkboxProperty.type !== 'checkbox') return false;
+function getCheckboxValue(checkboxProperty: NotionPageProperty): boolean {
+  if (!checkboxProperty || checkboxProperty.type !== 'checkbox' || checkboxProperty.checkbox === undefined) return false;
   return checkboxProperty.checkbox;
 }
 
 // Helper function to get date value
-function getDateValue(dateProperty: any): string {
+function getDateValue(dateProperty: NotionPageProperty): string {
   if (!dateProperty || dateProperty.type !== 'date' || !dateProperty.date) {
     return new Date().toISOString();
   }
@@ -51,13 +51,13 @@ function getDateValue(dateProperty: any): string {
 }
 
 // Helper function to get select value (for author)
-function getSelectValue(selectProperty: any): string {
+function getSelectValue(selectProperty: NotionPageProperty): string {
   if (!selectProperty || selectProperty.type !== 'select' || !selectProperty.select) return '';
   return selectProperty.select.name;
 }
 
 // Helper function to get cover image URL
-function getCoverImage(page: any): string | undefined {
+function getCoverImage(page: NotionPage): string | undefined {
   if (!page.cover) return undefined;
   
   if (page.cover.type === 'file') {

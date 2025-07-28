@@ -15,7 +15,13 @@ export interface BlogPost {
 export interface NotionPageProperty {
   id: string;
   type: string;
-  [key: string]: any;
+  title?: Array<{ plain_text: string }>;
+  checkbox?: boolean;
+  date?: { start: string } | null;
+  multi_select?: Array<{ name: string }>;
+  select?: { name: string } | null;
+  rich_text?: Array<{ plain_text: string }>;
+  [key: string]: unknown;
 }
 
 export interface NotionPage {

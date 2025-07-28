@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { Calendar, User, Tag } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
@@ -11,11 +12,13 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
   return (
     <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {post.coverImage && (
-        <div className="aspect-video w-full overflow-hidden">
-          <img
+        <div className="aspect-video w-full overflow-hidden relative">
+          <Image
             src={post.coverImage}
             alt={post.title}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            fill
+            className="object-cover hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       )}
