@@ -1,6 +1,7 @@
 import { Client } from '@notionhq/client';
 import { NotionToMarkdown } from 'notion-to-md';
 import { BlogPost, NotionPage, NotionPageProperty, BlogListResponse } from '@/types/blog';
+import { cache } from 'react';
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -91,7 +92,7 @@ async function notionPageToBlogPost(page: NotionPage, includeContent = false): P
     slug,
     content,
     excerpt: content ? content.substring(0, 200) + '...' : '',
-    publishedDate: getDateValue(page.properties.Published || page.properties.Date),
+    publishedDate: getDateValue(page.properties.Date || page.properties.Published),
     lastEditedDate: page.last_edited_time,
     tags: getTags(page.properties.Tags),
     author: getSelectValue(page.properties.Author),
@@ -100,60 +101,54 @@ async function notionPageToBlogPost(page: NotionPage, includeContent = false): P
   };
 }
 
-// Fetch all blog posts
-export async function getBlogPosts(cursor?: string): Promise<BlogListResponse> {
-  try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      filter: {
-        property: 'Published',
-        checkbox: {
-          equals: true,
-        },
+// Cache for all published posts (used by both list and individual fetches)
+const getAllPublishedPosts = cache(async (): Promise<NotionPage[]> => {
+  const response = await notion.databases.query({
+    database_id: DATABASE_ID,
+    filter: {
+      property: 'Published',
+      checkbox: {
+        equals: true,
       },
-      sorts: [
-        {
-          property: 'Published',
-          direction: 'descending',
-        },
-      ],
-      start_cursor: cursor,
-      page_size: 10,
-    });
+    },
+    sorts: [
+      {
+        property: 'Date',
+        direction: 'descending',
+      },
+    ],
+  });
+  
+  return response.results as NotionPage[];
+});
 
+// Fetch all blog posts (cached)
+export const getBlogPosts = cache(async (cursor?: string): Promise<BlogListResponse> => {
+  try {
+    // For simplicity, we'll get all posts from cache and implement pagination later if needed
+    const pages = await getAllPublishedPosts();
+    
     const posts = await Promise.all(
-      response.results.map((page) => notionPageToBlogPost(page as NotionPage, false))
+      pages.map((page) => notionPageToBlogPost(page as NotionPage, false))
     );
 
     return {
       posts,
-      hasMore: response.has_more,
-      nextCursor: response.next_cursor || undefined,
+      hasMore: false, // Simplified for now since we're getting all posts
+      nextCursor: undefined,
     };
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     throw new Error('Failed to fetch blog posts');
   }
-}
+});
 
-// Fetch a single blog post by slug
-export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+// Fetch a single blog post by slug (cached)
+export const getBlogPostBySlug = cache(async (slug: string): Promise<BlogPost | null> => {
   try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      filter: {
-        and: [
-          {
-            property: 'Published',
-            checkbox: {
-              equals: true,
-            },
-          },
-        ],
-      },
-    });
-
-    for (const page of response.results) {
+    const pages = await getAllPublishedPosts();
+    
+    for (const page of pages) {
       const post = await notionPageToBlogPost(page as NotionPage, true);
       if (post.slug === slug) {
         return post;
@@ -165,10 +160,10 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
     console.error('Error fetching blog post by slug:', error);
     throw new Error('Failed to fetch blog post');
   }
-}
+});
 
-// Fetch a single blog post by ID
-export async function getBlogPostById(id: string): Promise<BlogPost | null> {
+// Fetch a single blog post by ID (cached)
+export const getBlogPostById = cache(async (id: string): Promise<BlogPost | null> => {
   try {
     const page = await notion.pages.retrieve({ page_id: id });
     return await notionPageToBlogPost(page as NotionPage, true);
@@ -176,4 +171,4 @@ export async function getBlogPostById(id: string): Promise<BlogPost | null> {
     console.error('Error fetching blog post by ID:', error);
     return null;
   }
-}
+});

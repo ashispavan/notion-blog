@@ -1,62 +1,67 @@
-'use client';
-
-import React from 'react';
 import Image from 'next/image';
-import { useBlogPost } from '@/hooks/use-blog';
+import { getBlogPostBySlug } from '@/lib/notion';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { format } from 'date-fns';
-import { Calendar, User, Tag, ArrowLeft, Loader2 } from 'lucide-react';
+import { Calendar, User, Tag, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  const [slug, setSlug] = React.useState<string>('');
+// Generate metadata for SEO and performance
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
   
-  React.useEffect(() => {
-    params.then((resolvedParams) => {
-      setSlug(resolvedParams.slug);
-    });
-  }, [params]);
-
-  const { data: post, isLoading, error } = useBlogPost(slug);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-6 h-6 animate-spin" />
-          <span>Loading blog post...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    if (error.message === 'Post not found') {
-      notFound();
-    }
+  try {
+    const post = await getBlogPostBySlug(slug);
     
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-          <p className="text-gray-600 mb-4">
-            {error.message || 'Failed to load blog post'}
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to blog
-          </Link>
-        </div>
-      </div>
-    );
+    if (!post) {
+      return {
+        title: 'Post Not Found',
+      };
+    }
+
+    return {
+      title: post.title,
+      description: post.excerpt || `Read ${post.title} by ${post.author}`,
+      authors: post.author ? [{ name: post.author }] : undefined,
+      publishedTime: post.publishedDate,
+      modifiedTime: post.lastEditedDate,
+      openGraph: {
+        title: post.title,
+        description: post.excerpt || `Read ${post.title} by ${post.author}`,
+        type: 'article',
+        publishedTime: post.publishedDate,
+        modifiedTime: post.lastEditedDate,
+        authors: post.author ? [post.author] : undefined,
+        images: post.coverImage ? [{ url: post.coverImage }] : undefined,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: post.title,
+        description: post.excerpt || `Read ${post.title} by ${post.author}`,
+        images: post.coverImage ? [post.coverImage] : undefined,
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'Error Loading Post',
+    };
+  }
+}
+
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
+  
+  let post;
+  try {
+    post = await getBlogPostBySlug(slug);
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    throw error;
   }
 
   if (!post) {

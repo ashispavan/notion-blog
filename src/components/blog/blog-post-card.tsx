@@ -1,16 +1,29 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Calendar, User, Tag } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
+import { useRouter } from 'next/navigation';
 
 interface BlogPostCardProps {
   post: BlogPost;
 }
 
 export function BlogPostCard({ post }: BlogPostCardProps) {
+  const router = useRouter();
+
+  const handleMouseEnter = () => {
+    // Prefetch the blog post page on hover
+    router.prefetch(`/blog/${post.slug}`);
+  };
+
   return (
-    <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <article 
+      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+      onMouseEnter={handleMouseEnter}
+    >
       {post.coverImage && (
         <div className="aspect-video w-full overflow-hidden relative">
           <Image
@@ -19,6 +32,9 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
             fill
             className="object-cover hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+            priority
           />
         </div>
       )}
@@ -41,7 +57,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
         </div>
 
         <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors">
-          <Link href={`/blog/${post.slug}`}>
+          <Link href={`/blog/${post.slug}`} prefetch={true}>
             {post.title}
           </Link>
         </h2>
@@ -70,6 +86,7 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
 
         <Link
           href={`/blog/${post.slug}`}
+          prefetch={true}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors"
         >
           Read more →
