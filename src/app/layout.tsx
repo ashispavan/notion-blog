@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "My Notion Blog",
-  description: "A blog powered by Notion and Next.js",
+  title: "Omega - Turn Your Notion Into a Beautiful Blog",
+  description: "Transform your Notion database into a fast, SEO-optimized blog built with Next.js. No coding required.",
 };
 
 export default function RootLayout({

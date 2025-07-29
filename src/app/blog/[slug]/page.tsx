@@ -69,23 +69,58 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-white">
+      {/* Header with navigation */}
+      <header className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="text-base font-semibold tracking-wider text-gray-900 hover:text-gray-700">
+              OMEGA
+            </Link>
+            <nav className="flex space-x-6 text-base text-gray-600">
+              <Link href="/#demo" className="hover:text-gray-900">Demo</Link>
+              <Link href="https://github.com/ashispavan/notion-blog" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900">Get Omega</Link>
+            </nav>
+          </div>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to blog
           </Link>
         </div>
-      </div>
+      </header>
 
       <article className="max-w-4xl mx-auto px-4 py-8">
-        <header className="mb-8">
+        <header className="mb-12">
+          <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
+            <span>{post.author}</span>
+            <span>·</span>
+            <time dateTime={post.publishedDate}>
+              {format(new Date(post.publishedDate), 'MMMM dd, yyyy')}
+            </time>
+          </div>
+
+          <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            {post.title}
+          </h1>
+
+          {post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-8">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="px-3 py-1 bg-gray-50 text-gray-600 text-sm rounded"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           {post.coverImage && (
-            <div className="aspect-video w-full overflow-hidden rounded-lg mb-6 relative">
+            <div className="aspect-video w-full overflow-hidden rounded-lg mb-8 relative">
               <Image
                 src={post.coverImage}
                 alt={post.title}
@@ -96,45 +131,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               />
             </div>
           )}
-
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {post.title}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <time dateTime={post.publishedDate}>
-                {format(new Date(post.publishedDate), 'MMMM dd, yyyy')}
-              </time>
-            </div>
-
-            {post.author && (
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span>{post.author}</span>
-              </div>
-            )}
-          </div>
-
-          {post.tags.length > 0 && (
-            <div className="flex items-center gap-2 mb-6">
-              <Tag className="w-4 h-4 text-gray-400" />
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </header>
 
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="prose prose-lg max-w-none">
           <MarkdownRenderer content={post.content} />
         </div>
       </article>
