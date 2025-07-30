@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { getBlogPostBySlug } from '@/lib/notion';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { format } from 'date-fns';
-import { Calendar, User, Tag, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -28,8 +28,6 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       title: post.title,
       description: post.excerpt || `Read ${post.title} by ${post.author}`,
       authors: post.author ? [{ name: post.author }] : undefined,
-      publishedTime: post.publishedDate,
-      modifiedTime: post.lastEditedDate,
       openGraph: {
         title: post.title,
         description: post.excerpt || `Read ${post.title} by ${post.author}`,
@@ -46,7 +44,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         images: post.coverImage ? [post.coverImage] : undefined,
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Error Loading Post',
     };

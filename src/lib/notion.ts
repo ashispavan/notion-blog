@@ -123,7 +123,7 @@ const getAllPublishedPosts = cache(async (): Promise<NotionPage[]> => {
 });
 
 // Fetch all blog posts (cached)
-export const getBlogPosts = cache(async (cursor?: string): Promise<BlogListResponse> => {
+export const getBlogPosts = cache(async (): Promise<BlogListResponse> => {
   try {
     // For simplicity, we'll get all posts from cache and implement pagination later if needed
     const pages = await getAllPublishedPosts();
